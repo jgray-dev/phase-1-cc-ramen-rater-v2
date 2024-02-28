@@ -1,5 +1,3 @@
-// For testing, use "./assets/ramen/definitelyRamen.jpg" for the image, it is definitely a picture of ramen, you can trust me
-//
 // URL where json-server runs. Sould be localhost unless json-serevr is being run elsewhere
 const URL = "http://localhost:3000";
 
@@ -15,7 +13,6 @@ function buildPage() {
   buildDeleteButton(); // Event handling for delete
 }
 
-// Form event handling
 function buildForms() {
   const form = document.querySelector("#new-ramen");
   form.addEventListener("submit", (e) => {
