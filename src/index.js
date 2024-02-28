@@ -1,5 +1,5 @@
 // For testing, use "./assets/ramen/definitelyRamen.jpg" for the image, it is definitely a picture of ramen, you can trust me
-// 67.164.191.36
+//
 // URL where json-server runs. Sould be localhost unless json-serevr is being run elsewhere
 const URL = "http://localhost:3000";
 
