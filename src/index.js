@@ -1,4 +1,7 @@
-// index.js
+// For testing, use "./assets/ramen/definitelyRamen.jpg" for the image, it is definitely a picture of ramen, you can trust me
+// 67.164.191.36
+// URL where json-server runs. Sould be localhost unless json-serevr is being run elsewhere
+const URL = "http://localhost:3000";
 
 let currentlySelected = 1;
 
@@ -8,8 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function buildPage() {
   fetchMenu(); // Display menu items and previews
+  buildForms(); // Event handling for form
+  buildDeleteButton(); // Event handling for delete
+}
 
-  // Form event handling
+// Form event handling
+function buildForms() {
   const form = document.querySelector("#new-ramen");
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -18,7 +25,7 @@ function buildPage() {
     const image = e.target.image.value;
     const rating = e.target.rating.value;
     const comment = e.target["new-comment"].value;
-    //Check all fields have been submitted
+    //Check all fields have a value
     if (
       name !== "" &&
       restaurant !== "" &&
@@ -27,30 +34,78 @@ function buildPage() {
       comment !== ""
     ) {
       addNewRamen(name, restaurant, image, rating, comment);
+    } else {
+      alert("Please fill out all form items!");
     }
   });
+}
+
+function buildDeleteButton() {
   const deleteForm = document.querySelector("#delete-ramen");
   deleteForm.addEventListener("click", () => {
-    deleteItem(currentlySelected).then((r) => {});
+    deleteItem(currentlySelected);
     currentlySelected = 1;
   });
 }
 
+function fetchMenu() {
+  const previewDiv = document.querySelector("#ramen-menu");
+  previewDiv.innerHTML = "";
+  fetch(`${URL}/ramens`)
+    .then((r) => r.json())
+    .then((r) => {
+      r.forEach((item) => {
+        displayPreview(item);
+        if (parseInt(item.id) === currentlySelected) {
+          displayItem(item);
+        }
+      });
+    })
+    .catch((error) => {
+      console.log("ERROR (fetchMenu) // " + error);
+    });
+}
+
+function displayPreview(item) {
+  const previewDiv = document.querySelector("#ramen-menu");
+  const preview = document.createElement("img");
+  preview.src = item.image;
+  preview.addEventListener("click", () => {
+    displayItem(item);
+    currentlySelected = item.id; // update the default image on click, so we don't lose it when uploading a new rating
+  });
+  previewDiv.append(preview);
+}
+
+function displayItem(item) {
+  const imageBox = document.querySelector("#ramen-detail .detail-image");
+  const nameBox = document.querySelector("#ramen-detail .name");
+  const restaurantBox = document.querySelector("#ramen-detail .restaurant");
+  const ratingBox = document.querySelector("#rating-display");
+  const commentBox = document.querySelector("#comment-display");
+  imageBox.src = item.image;
+  nameBox.textContent = item.name;
+  restaurantBox.textContent = item.restaurant;
+  ratingBox.textContent = item.rating;
+  commentBox.textContent = item.comment;
+}
+
 async function deleteItem(id) {
-  await fetch(`http://67.164.191.36:3000/ramens/${id}`, {
+  // Async so we wait until completion or error before calling fetchMenu to reload the preview items
+  await fetch(`${URL}/ramens/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
     },
-  }).then(() => {
-    console.log("Deleted?", id);
+  }).catch((error) => {
+    console.log("ERROR (deleteItem) // " + error);
   });
   fetchMenu();
 }
 
 function addNewRamen(name, restaurant, image, rating, comment) {
   console.log("Creating new ramen rating");
-  fetch("http://67.164.191.36:3000/ramens", {
+  fetch(`${URL}/ramens`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -64,50 +119,11 @@ function addNewRamen(name, restaurant, image, rating, comment) {
       comment: comment,
     }),
   })
-    .then((r) => r.json())
     .then((r) => {
       console.log("Posted new ramen rating.");
       fetchMenu();
+    })
+    .catch((error) => {
+      console.log("ERROR (addNewRamen) // " + error);
     });
-}
-
-function fetchMenu() {
-  const previewDiv = document.querySelector("#ramen-menu");
-  previewDiv.innerHTML = "";
-  fetch("http://67.164.191.36:3000/ramens")
-    .then((r) => r.json())
-    .then((r) => {
-      r.forEach((item) => {
-        displayPreview(item);
-        if (parseInt(item.id) === currentlySelected) {
-          displayItem(item);
-        }
-      });
-    });
-}
-
-function displayPreview(item) {
-  const previewDiv = document.querySelector("#ramen-menu");
-  const preview = document.createElement("img");
-  preview.src = item.image;
-  preview.width = 100;
-  preview.addEventListener("click", () => {
-    displayItem(item);
-    currentlySelected = item.id; // update the default image on click, so we don't lose it when uploading a new rating
-  });
-  previewDiv.append(preview);
-}
-
-function displayItem(item) {
-  const imageBox = document.querySelector("#ramen-detail .detail-image");
-  const nameBox = document.querySelector("#ramen-detail .name");
-  const restaurantBox = document.querySelector("#ramen-detail .restaurant");
-  imageBox.src = item.image;
-  nameBox.textContent = item.name;
-  restaurantBox.textContent = item.restaurant;
-
-  const ratingBox = document.querySelector("#rating-display");
-  const commentBox = document.querySelector("#comment-display");
-  ratingBox.textContent = item.rating;
-  commentBox.textContent = item.comment;
 }
